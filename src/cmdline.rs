@@ -180,7 +180,7 @@ fn get_clap_command() -> clap::Command {
 }
 
 /// Parse the commandline args into a `Result<Command>` to execute.
-pub fn try_parse() -> Result<Command> {
+pub fn try_parse(mut args: Vec<OsString>, expected_exe_name: &str) -> Result<Command> {
     trace!("parse");
 
     let cwd =
@@ -188,7 +188,6 @@ pub fn try_parse() -> Result<Command> {
 
     // We only care if it's `1`
     let internal_start_server = env::var(ENV_VAR_INTERNAL_START_SERVER).as_deref() == Ok("1");
-    let mut args: Vec<_> = env::args_os().collect();
 
     if !internal_start_server {
         if let Ok(exe) = env::current_exe() {
@@ -198,7 +197,7 @@ pub fn try_parse() -> Result<Command> {
                 .map(|s| s.to_lowercase())
             {
                 // If the executable has its standard name, do nothing.
-                Some(ref e) if e == env!("CARGO_PKG_NAME") => {}
+                Some(ref e) if e == expected_exe_name => {}
                 // Otherwise, if it was copied/hardlinked under a different $name, act
                 // as if it were invoked with `sccache $name`, but avoid $name resolving
                 // to ourselves again if it's in the PATH.

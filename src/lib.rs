@@ -61,6 +61,10 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const LOGGING_ENV: &str = "SCCACHE_LOG";
 
 pub fn main() {
+    main_args(env::args_os().collect(), env!("CARGO_PKG_NAME"))
+}
+
+pub fn main_args(args: Vec<std::ffi::OsString>, expected_exe_name: &str) {
     init_logging();
 
     let incr_env_strs = ["CARGO_BUILD_INCREMENTAL", "CARGO_INCREMENTAL"];
@@ -74,7 +78,7 @@ pub fn main() {
             _ => (),
         });
 
-    let command = match cmdline::try_parse() {
+    let command = match cmdline::try_parse(args, expected_exe_name) {
         Ok(cmd) => cmd,
         Err(e) => match e.downcast::<clap::error::Error>() {
             // If the error is from clap then let them handle formatting and exiting
